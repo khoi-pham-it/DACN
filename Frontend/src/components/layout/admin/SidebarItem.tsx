@@ -2,7 +2,6 @@ import React from "react"
 import {
   LayoutDashboard,
   Percent,
-  UserRound,
   Users,
 } from "lucide-react"
 
@@ -34,9 +33,4 @@ export const sidebarItems: SidebarItem[] = [
     icon: <Users />,
     path: "/admin/staffs/list",  
   },
-  {
-    title: "Khách hàng",
-    icon: <UserRound />,
-    path: "/admin/customers/list",
-  }
 ]
