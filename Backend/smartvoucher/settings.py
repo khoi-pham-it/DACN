@@ -27,7 +27,7 @@ SECRET_KEY = 'django-insecure-4t7bm4!rhr0kb3neea1zupuz$tct87d71&q9!6ry+vd0&r-9vd
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['*']  # Restrict to specific domains in production
 
 
 # Application definition
@@ -61,7 +61,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_ALL_ORIGINS = True  # Set CORS_ALLOWED_ORIGINS to specific domains in production
 CORS_ALLOW_HEADERS = [
     "accept",
     "accept-encoding",

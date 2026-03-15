@@ -1,15 +1,17 @@
 services:
   db:
     image: mysql:8.0
+    # NOTE: Use strong passwords in production – copy .env.example to .env and update values.
+    env_file: .env
     environment:
-      MYSQL_ROOT_PASSWORD: 123456
-      MYSQL_DATABASE: smartvoucher
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-123456}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-smartvoucher}
     ports:
       - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p123456"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-123456}"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -18,12 +20,13 @@ services:
     build:
       context: ./Backend
       dockerfile: Dockerfile
+    env_file: .env
     environment:
       DJANGO_DB_HOST: db
       DJANGO_DB_PORT: 3306
-      DJANGO_DB_NAME: smartvoucher
-      DJANGO_DB_USER: root
-      DJANGO_DB_PASSWORD: 123456
+      DJANGO_DB_NAME: ${MYSQL_DATABASE:-smartvoucher}
+      DJANGO_DB_USER: ${DJANGO_DB_USER:-root}
+      DJANGO_DB_PASSWORD: ${DJANGO_DB_PASSWORD:-123456}
     depends_on:
       db:
         condition: service_healthy

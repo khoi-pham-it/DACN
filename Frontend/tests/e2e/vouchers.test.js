@@ -7,7 +7,7 @@
  *   - Valid admin credentials in env: TEST_USERNAME, TEST_PASSWORD
  */
 
-const puppeteer = require('puppeteer');
+import puppeteer from 'puppeteer';
 
 const BASE_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 const API_URL = process.env.API_URL || 'http://localhost:8000/api';
@@ -84,7 +84,7 @@ async function runTests() {
           localStorage.setItem('access_token', t);
         }, token);
         await page.goto(`${BASE_URL}/admin/vouchers/list`, { waitUntil: 'networkidle0', timeout: TIMEOUT });
-        await page.waitForTimeout(2000); // Wait for API response
+        await new Promise(r => setTimeout(r, 2000)); // Wait for API response
         const headingText = await page.evaluate(() => document.body.innerText);
         assert(headingText.includes('Quản lý Voucher'), 'Voucher list page heading is visible');
         assert(headingText.includes('Danh sách Voucher'), 'Voucher list table section is visible');
@@ -103,7 +103,7 @@ async function runTests() {
           localStorage.setItem('access_token', t);
         }, token);
         await page.goto(`${BASE_URL}/admin/vouchers/list`, { waitUntil: 'networkidle0', timeout: TIMEOUT });
-        await page.waitForTimeout(2000);
+        await new Promise(r => setTimeout(r, 2000));
 
         // Check if there are voucher rows and click the first one
         const rows = await page.$$('tbody tr');
@@ -112,7 +112,7 @@ async function runTests() {
           const viewBtn = await page.$('tbody tr button');
           if (viewBtn) {
             await viewBtn.click();
-            await page.waitForTimeout(1000);
+            await new Promise(r => setTimeout(r, 1000));
             const url = page.url();
             assert(url.includes('/recipients'), 'Clicking view button navigates to recipients page');
           } else {
@@ -137,7 +137,7 @@ async function runTests() {
         }, token);
         // Navigate directly to recipients page for voucher ID 1 as test
         await page.goto(`${BASE_URL}/admin/vouchers/1/recipients`, { waitUntil: 'networkidle0', timeout: TIMEOUT });
-        await page.waitForTimeout(2000);
+        await new Promise(r => setTimeout(r, 2000));
         const bodyText = await page.evaluate(() => document.body.innerText);
         assert(
           bodyText.includes('Danh sách khách hàng nhận Voucher') || bodyText.includes('Quay lại'),
