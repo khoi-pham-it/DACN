@@ -119,16 +119,6 @@ class AssignGroupToUserAPI(APIView):
         return Response({"message": "Group assigned to user"})
 
 
-class CustomerListAPI(APIView):
-    permission_classes = [IsAuthenticated, IsStaffOrAdmin]
-
-    def get(self, request):
-        User = get_user_model()
-        users = User.objects.filter(role="customer", is_active=True).order_by("id")
-        serializer = UserSummarySerializer(users, many=True)
-        return Response(serializer.data)
-
-
 class StaffListAPI(APIView):
     permission_classes = [IsAuthenticated, IsStaffOrAdmin]
 

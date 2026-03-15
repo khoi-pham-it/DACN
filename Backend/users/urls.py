@@ -5,7 +5,6 @@ from .views import (
     PermissionListAPI,
     CreateGroupAPI,
     AssignGroupToUserAPI,
-    CustomerListAPI,
     StaffListAPI,
     UpdateUserRoleAPI,
     UpdateUserPermissionsAPI,
@@ -16,7 +15,6 @@ from .views import (
 urlpatterns = [
     path("register/", RegisterAPI.as_view()),
     path("me/", MeAPI.as_view()),
-    path("customers/", CustomerListAPI.as_view()),
     path("staff/", StaffListAPI.as_view()),
     path("permissions/", PermissionListAPI.as_view()),
     path("groups/create/", CreateGroupAPI.as_view()), 

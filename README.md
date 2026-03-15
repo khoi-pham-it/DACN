@@ -134,7 +134,6 @@ npm run test:e2e
 # Hoặc chạy từng phần:
 npm run test:e2e:auth       # Test trang login (không cần backend)
 npm run test:e2e:vouchers   # Test trang quản lý voucher
-npm run test:e2e:customers  # Test trang quản lý khách hàng
 npm run test:e2e:staffs     # Test trang quản lý nhân viên
 ```
 
@@ -202,7 +201,6 @@ DACN/
 |--------|----------|-------|
 | `POST` | `/api/users/login/` | Đăng nhập, lấy JWT token |
 | `POST` | `/api/users/register/` | Đồng bộ khách hàng từ web chính |
-| `GET` | `/api/users/customers/` | Danh sách khách hàng |
 | `GET` | `/api/users/staff/` | Danh sách nhân viên |
 | `PATCH` | `/api/users/<id>/role/` | Cập nhật vai trò |
 | `DELETE` | `/api/users/<id>/` | Vô hiệu hoá tài khoản |
