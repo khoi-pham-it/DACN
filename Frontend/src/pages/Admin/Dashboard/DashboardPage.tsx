@@ -33,8 +33,9 @@ import {
   Bar
 } from "recharts";
 import { Ticket, Percent, TrendingUp, DollarSign } from "lucide-react";
-import { API_BASE_URL } from '@/services/apiService';
+import { API_BASE_URL, authFetch } from '@/services/apiService';
 import { DatePickerWithRange } from './DateRangePicker';
+import { useNavigate } from 'react-router-dom';
 
 // --- UTILS ---
 const formatCurrency = (value: number) => {
@@ -57,6 +58,7 @@ const formatChartDate = (dateString: string, groupBy: string) => {
 
 // --- COMPONENT CHÍNH ---
 export default function DashboardPage() {
+  const navigate = useNavigate();
   const [topFilter, setTopFilter] = useState("most_used"); // State quản lý tiêu chí của Top Vouchers
   // 1. STATES BỘ LỌC
   const [dateChart, setDateChart] = useState({ from: "2026-03-01", to: "2026-03-31" });
@@ -74,14 +76,7 @@ export default function DashboardPage() {
   // --- API: OVERVIEW ---
   useEffect(() => {
     const fetchOverview = async () => {
-      // API overview có vẻ không nhận start_date/end_date trong JSON mẫu của bạn, 
-      // nhưng nếu cần, bạn có thể truyền thêm vào URL
-      const res = await fetch(`${API_BASE_URL}/vouchers/stats/overview/`, {
-        headers: {
-          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzczMzM5OTA5LCJpYXQiOjE3NzMzMjE5MDksImp0aSI6ImYzNjBkNWY1NmU0OTQyYTc4MTQwMjJhODg4Zjc0MDAyIiwidXNlcl9pZCI6IjEifQ.0k0gvVDmiLVc33-D5-yW9FVgSJ-PvZKVo71MMkR_8jE`,
-
-        }
-      });
+      const res = await authFetch(`${API_BASE_URL}/vouchers/stats/overview/`);
       const data = await res.json();
       setOverview(data);
     };
@@ -99,13 +94,7 @@ export default function DashboardPage() {
         url += `&start_date=${dateChart.from}&end_date=${dateChart.to}`;
       }
 
-      const res = await fetch(url,
-        {
-          headers: {
-            'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzczMzM5OTA5LCJpYXQiOjE3NzMzMjE5MDksImp0aSI6ImYzNjBkNWY1NmU0OTQyYTc4MTQwMjJhODg4Zjc0MDAyIiwidXNlcl9pZCI6IjEifQ.0k0gvVDmiLVc33-D5-yW9FVgSJ-PvZKVo71MMkR_8jE`,
-
-          }
-        });
+      const res = await authFetch(url);
       const data = await res.json();
       setChart(data.chart || []);
     };
@@ -117,12 +106,7 @@ export default function DashboardPage() {
     const fetchTopVouchers = async () => {
       if (!dateTop.from || !dateTop.to) return;
       const url = `${API_BASE_URL}/vouchers/stats/top-vouchers/?start_date=${dateTop.from}&end_date=${dateTop.to}&limit=5`;
-      const res = await fetch(url, {
-        headers: {
-          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzczMzM5OTA5LCJpYXQiOjE3NzMzMjE5MDksImp0aSI6ImYzNjBkNWY1NmU0OTQyYTc4MTQwMjJhODg4Zjc0MDAyIiwidXNlcl9pZCI6IjEifQ.0k0gvVDmiLVc33-D5-yW9FVgSJ-PvZKVo71MMkR_8jE`,
-
-        }
-      });
+      const res = await authFetch(url);
       const data = await res.json();
       setTopVouchers(data.top_vouchers || { most_used: [], highest_revenue: [] });
     };
@@ -134,12 +118,7 @@ export default function DashboardPage() {
     const fetchPerformance = async () => {
       if (!datePerformance.from || !datePerformance.to) return;
       const url = `${API_BASE_URL}/vouchers/stats/performance/?start_date=${datePerformance.from}&end_date=${datePerformance.to}&ordering=-usage_count`;
-      const res = await fetch(url, {
-        headers: {
-          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzczMzM5OTA5LCJpYXQiOjE3NzMzMjE5MDksImp0aSI6ImYzNjBkNWY1NmU0OTQyYTc4MTQwMjJhODg4Zjc0MDAyIiwidXNlcl9pZCI6IjEifQ.0k0gvVDmiLVc33-D5-yW9FVgSJ-PvZKVo71MMkR_8jE`,
-
-        }
-      });
+      const res = await authFetch(url);
       const data = await res.json();
       setPerformance(data.results || []);
     };
@@ -388,7 +367,11 @@ export default function DashboardPage() {
             <TableBody>
               {/* Lặp qua state performance */}
               {performance?.map((item: any) => (
-                <TableRow key={item.voucher_id}>
+                <TableRow
+                  key={item.voucher_id}
+                  className="cursor-pointer hover:bg-slate-100"
+                  onClick={() => navigate(`/admin/vouchers/${item.voucher_id}/recipients`)}
+                >
                   <TableCell>
                     <div className="font-medium">{item.code}</div>
                     <div className="text-xs text-muted-foreground">{item.title}</div>
