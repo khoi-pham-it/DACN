@@ -1,0 +1,186 @@
+name: CI – Build & E2E Tests
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+# Minimal permissions for all jobs
+permissions:
+  contents: read
+
+jobs:
+  # ─────────────────────────────────────────────
+  # Job 1: Ensure the frontend compiles cleanly
+  # ─────────────────────────────────────────────
+  frontend-build:
+    name: Frontend Build (TypeScript + Vite)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: Frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: Frontend
+
+      - name: Build
+        run: npm run build
+        working-directory: Frontend
+
+  # ─────────────────────────────────────────────
+  # Job 2: Auth E2E tests (no backend needed)
+  # ─────────────────────────────────────────────
+  e2e-auth:
+    name: E2E Tests – Auth (Login Page)
+    runs-on: ubuntu-latest
+    needs: frontend-build
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: Frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: Frontend
+
+      - name: Install Puppeteer Chrome browser
+        run: npx puppeteer browsers install chrome
+        working-directory: Frontend
+
+      - name: Start Vite dev server (background)
+        run: npx vite --port 5173 &
+        working-directory: Frontend
+
+      - name: Wait for Vite to be ready
+        run: npx wait-on http://localhost:5173 --timeout 60000
+        working-directory: Frontend
+
+      - name: Run auth E2E tests
+        run: node tests/e2e/auth.test.js
+        working-directory: Frontend
+        env:
+          FRONTEND_URL: http://127.0.0.1:5173
+
+  # ─────────────────────────────────────────────
+  # Job 3: Full-stack E2E tests (backend + MySQL)
+  # ─────────────────────────────────────────────
+  e2e-full-stack:
+    name: E2E Tests – Full Stack (Vouchers / Customers / Staffs)
+    runs-on: ubuntu-latest
+    needs: frontend-build
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: '123456'
+          MYSQL_DATABASE: smartvoucher
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -u root -p123456"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # ── Python / Django backend ──────────────
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install system dependencies for mysqlclient
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y default-libmysqlclient-dev pkg-config
+
+      - name: Install Python packages
+        run: pip install -r requirements.txt
+        working-directory: Backend
+
+      - name: Run Django migrations
+        run: python manage.py migrate
+        working-directory: Backend
+        env:
+          DJANGO_DB_HOST: 127.0.0.1
+          DJANGO_DB_PORT: 3306
+          DJANGO_DB_NAME: smartvoucher
+          DJANGO_DB_USER: root
+          DJANGO_DB_PASSWORD: '123456'
+
+      - name: Create admin user for tests
+        run: |
+          python manage.py shell -c "
+          from django.contrib.auth import get_user_model
+          User = get_user_model()
+          if not User.objects.filter(username='admin').exists():
+              u = User.objects.create_superuser('admin', 'admin@example.com', 'admin123')
+              u.role = 'admin'
+              u.save(update_fields=['role'])
+              print('Admin created: admin / admin123')
+          else:
+              print('Admin already exists')
+          "
+        working-directory: Backend
+        env:
+          DJANGO_DB_HOST: 127.0.0.1
+          DJANGO_DB_PORT: 3306
+          DJANGO_DB_NAME: smartvoucher
+          DJANGO_DB_USER: root
+          DJANGO_DB_PASSWORD: '123456'
+
+      - name: Start Django dev server (background)
+        run: python manage.py runserver 0.0.0.0:8000 &
+        working-directory: Backend
+        env:
+          DJANGO_DB_HOST: 127.0.0.1
+          DJANGO_DB_PORT: 3306
+          DJANGO_DB_NAME: smartvoucher
+          DJANGO_DB_USER: root
+          DJANGO_DB_PASSWORD: '123456'
+
+      # ── Node.js / Vite frontend ──────────────
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: Frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        run: npm ci
+        working-directory: Frontend
+
+      - name: Install Puppeteer Chrome browser
+        run: npx puppeteer browsers install chrome
+        working-directory: Frontend
+
+      - name: Start Vite dev server (background)
+        run: npx vite --port 5173 &
+        working-directory: Frontend
+
+      - name: Wait for both servers to be ready
+        run: |
+          npx wait-on http://127.0.0.1:8000/api/users/me/ --timeout 60000 --httpTimeout 5000 || true
+          npx wait-on http://localhost:5173 --timeout 60000
+        working-directory: Frontend
+
+      - name: Run all E2E tests
+        run: npm run test:e2e
+        working-directory: Frontend
+        env:
+          FRONTEND_URL: http://127.0.0.1:5173
+          API_URL: http://127.0.0.1:8000/api
+          TEST_USERNAME: admin
+          TEST_PASSWORD: admin123
