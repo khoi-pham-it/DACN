@@ -4,7 +4,7 @@
  * Requires: frontend dev server running at http://localhost:5173
  */
 
-const puppeteer = require('puppeteer');
+import puppeteer from 'puppeteer';
 
 const BASE_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 const TIMEOUT = 10000;
@@ -58,7 +58,7 @@ async function runTests() {
       const page = await browser.newPage();
       await page.goto(`${BASE_URL}/login`, { waitUntil: 'networkidle0', timeout: TIMEOUT });
       await page.click('button[type="submit"]');
-      await page.waitForTimeout(500);
+      await new Promise(r => setTimeout(r, 500));
       // Check for any visible error toast or validation
       const body = await page.evaluate(() => document.body.innerText);
       assert(

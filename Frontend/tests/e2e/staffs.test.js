@@ -7,7 +7,7 @@
  *   - Valid admin credentials in env: TEST_USERNAME, TEST_PASSWORD
  */
 
-const puppeteer = require('puppeteer');
+import puppeteer from 'puppeteer';
 
 const BASE_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 const API_URL = process.env.API_URL || 'http://localhost:8000/api';
@@ -58,7 +58,7 @@ async function runTests() {
           localStorage.setItem('access_token', t);
         }, token);
         await page.goto(`${BASE_URL}/admin/staffs/list`, { waitUntil: 'networkidle0', timeout: TIMEOUT });
-        await page.waitForTimeout(2000);
+        await new Promise(r => setTimeout(r, 2000));
         const bodyText = await page.evaluate(() => document.body.innerText);
         assert(bodyText.includes('Quản lý Nhân viên'), 'Staff list page heading is visible');
         assert(bodyText.includes('Danh sách nhân viên'), 'Staff list table section is visible');
@@ -77,7 +77,7 @@ async function runTests() {
           localStorage.setItem('access_token', t);
         }, token);
         await page.goto(`${BASE_URL}/admin/staffs/list`, { waitUntil: 'networkidle0', timeout: TIMEOUT });
-        await page.waitForTimeout(1000);
+        await new Promise(r => setTimeout(r, 1000));
 
         const buttons = await page.$$('button');
         let addBtn = null;
@@ -91,7 +91,7 @@ async function runTests() {
 
         if (addBtn) {
           await addBtn.click();
-          await page.waitForTimeout(500);
+          await new Promise(r => setTimeout(r, 500));
           const bodyText = await page.evaluate(() => document.body.innerText);
           assert(
             bodyText.includes('Thêm nhân viên mới'),
@@ -115,7 +115,7 @@ async function runTests() {
           localStorage.setItem('access_token', t);
         }, token);
         await page.goto(`${BASE_URL}/admin/staffs/list`, { waitUntil: 'networkidle0', timeout: TIMEOUT });
-        await page.waitForTimeout(2000);
+        await new Promise(r => setTimeout(r, 2000));
         const bodyText = await page.evaluate(() => document.body.innerText);
         const hasColumns = bodyText.includes('Tên đăng nhập') &&
           bodyText.includes('Email') &&
@@ -154,13 +154,13 @@ async function runTests() {
           localStorage.setItem('access_token', t);
         }, token);
         await page.goto(`${BASE_URL}/admin`, { waitUntil: 'networkidle0', timeout: TIMEOUT });
-        await page.waitForTimeout(500);
+        await new Promise(r => setTimeout(r, 500));
 
         // Find logout button by title/tooltip
         const logoutBtn = await page.$('button[title="Đăng xuất"], button[aria-label="Đăng xuất"]');
         if (logoutBtn) {
           await logoutBtn.click();
-          await page.waitForTimeout(1000);
+          await new Promise(r => setTimeout(r, 1000));
           const url = page.url();
           assert(url.includes('/login'), 'Logout redirects to login page');
         } else {
@@ -176,7 +176,7 @@ async function runTests() {
             }
           }
           if (logoutClicked) {
-            await page.waitForTimeout(1000);
+            await new Promise(r => setTimeout(r, 1000));
             const url = page.url();
             assert(url.includes('/login'), 'Logout redirects to login page');
           } else {
