@@ -199,10 +199,9 @@ DACN/
 | Method | Endpoint | Mô tả |
 |--------|----------|-------|
 | `POST` | `/api/users/login/` | Đăng nhập, lấy JWT token |
-| `POST` | `/api/users/register/` | Đồng bộ khách hàng từ web chính |
 | `GET` | `/api/users/staff/` | Danh sách nhân viên |
 | `PATCH` | `/api/users/<id>/role/` | Cập nhật vai trò |
 | `DELETE` | `/api/users/<id>/` | Vô hiệu hoá tài khoản |
 | `GET` | `/api/vouchers/stats/overview/` | Thống kê tổng quan |
 | `GET` | `/api/vouchers/stats/performance/` | Hiệu suất voucher |
-| `GET` | `/api/vouchers/<id>/recipients/` | Danh sách nhận voucher |
+| `GET` | `/api/vouchers/<id>/recipients/` | Danh sách nhận voucher, đồng bộ khách hàng từ web chính |
